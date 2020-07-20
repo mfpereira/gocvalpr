@@ -1,34 +1,4 @@
-FROM ubuntu:14.04 as openalpr
-
-# Install prerequisites
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    curl \
-    git \
-    libcurl3-dev \
-    libleptonica-dev \
-    liblog4cplus-dev \
-    libopencv-dev \
-    libtesseract-dev \
-    wget
-
-# Copy all data
-COPY ./openalpr/openalpr-2.3.0 /srv/openalpr
-
-# Setup the build directory
-RUN mkdir /srv/openalpr/src/build
-WORKDIR /srv/openalpr/src/build
-
-# Setup the compile environment
-RUN cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_INSTALL_SYSCONFDIR:PATH=/etc .. && \
-    make -j2 && \
-    make install
-
-FROM golang:1.11 as base
-
-COPY --from=openalpr /srv/openalpr/src/build /openalpr/
-COPY --from=openalpr /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4 /openalpr/
+FROM golang:1.13 as base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
             git build-essential cmake pkg-config unzip libgtk2.0-dev \
