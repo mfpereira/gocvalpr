@@ -36,20 +36,22 @@ RUN curl -Lo opencv.zip https://github.com/opencv/opencv/archive/${OPENCV_VERSIO
 
 ENV GO111MODULE=on
 
+#Install OpenALPR and OpenALPR Go binding
+RUN apt-get update && apt-get install -y libtesseract-dev liblog4cplus-dev
+# Installing OpenALPR Go binding
+COPY ./openalpr /openalpr
+WORKDIR /openalpr/openalpr-2.3.0/src
+RUN cmake ./
+#WORKDIR /openalpr/openalpr-2.3.0/src/bindings/go
+RUN make && make install
+
 WORKDIR ${GOPATH}/src/app
-
 RUN go mod init
-
 RUN go get -u -d gocv.io/x/gocv@v0.17.0
 
-WORKDIR ${GOPATH}/src/app
-
-#Install openalpr
-
-RUN apt-get update && apt-get install -y openalpr openalpr-daemon openalpr-utils libopenalpr-dev
-
 COPY ./main.go ./
-
+COPY ./lp.jpg ./
+COPY ./runtime_data ./runtime_data/
 RUN go build -o app -i main.go
 
 CMD ["./app"]
